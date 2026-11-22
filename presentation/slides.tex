@@ -1,0 +1,218 @@
+% =============================================================================
+% slides.tex -- Data Analytics semestral project, topic: Specialty Cafes
+% Uses the figures and the number macros written by analysis/03_analysis.R.
+% Compile from the presentation/ folder:  latexmk -pdf slides.tex
+% =============================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}
+\usecolortheme{dove}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+\setbeamerfont{frametitle}{series=\bfseries}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+\graphicspath{{../report/figures/}}
+
+\newcommand{\meanci}[4]{$M = #1$\,#4, 95\%~CI [#2, #3]}
+\newcommand{\mdiffci}[4]{$M_\Delta = #1$\,#4, 95\%~CI [#2, #3]}
+\newcommand{\diffci}[7]{$M_\Delta = #1$\,#4, 95\%~CI [#2, #3], $d = #5$, 95\%~CI [#6, #7]}
+\newcommand{\dci}[3]{$d = #1$, 95\%~CI [#2, #3]}
+\newcommand{\tstat}[2]{$t(#1) = #2$}
+\newcommand{\pval}[1]{$p = #1$}
+\newcommand{\plt}[1]{$p < #1$}
+\newcommand{\Fstat}[3]{$F(#1, #2) = #3$}
+\input{../report/tables/results_macros.tex}
+
+\title{Filter coffee in Prague caf\'es}
+\subtitle{A bit under 4 USD, about 17 CZK above an espresso, offered mostly by roasteries}
+\author{Luca Richardson \and Aidan Osbaugh}
+\institute{Data Analytics, Speciality Caf\'es}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{What do specialty caf\'es in Prague offer?}
+\begin{itemize}
+  \item Our chapter of the Prague caf\'e story: \textbf{filter coffee}, the clearest specialty marker
+  \item \Nall{} caf\'es visited by the class; \Nfilter{} of them sell filter coffee
+  \item Three threads:
+  \begin{enumerate}
+    \item What does a filter coffee cost? (A1, A3, A6, A7, A9)
+    \item Do specialty caf\'es charge more for the basics? (A2, A4, A8)
+    \item Who offers filter coffee, and where? (A5, A10)
+  \end{enumerate}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A1: A filter coffee costs a little under 4 US dollars}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\includegraphics[width=\linewidth]{A1_figure.pdf}
+\column{0.5\textwidth}
+\begin{itemize}
+  \item Mean price: \AoneEst
+  \item 4 USD = \BenchCZK\,CZK; difference \AoneDiff
+  \item \AoneD
+  \item Slightly \emph{below} 4 USD, but only by about 4\,CZK
+\end{itemize}
+\vspace{0.4em}
+{\footnotesize\color{gray}Test: one-sample $t$-test, \AoneT}
+\end{columns}
+\end{frame}
+
+\begin{frame}{A2: Caf\'es with filter coffee charge a bit more for espresso}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\includegraphics[width=0.85\linewidth]{A2_figure.pdf}
+\column{0.5\textwidth}
+\begin{itemize}
+  \item With filter: \AtwoMone\,CZK; without: \AtwoMzero\,CZK
+  \item Difference \AtwoEst
+  \item About 4\,CZK more for an espresso: a small effect
+\end{itemize}
+\vspace{0.4em}
+{\footnotesize\color{gray}Test: Welch's $t$-test, \AtwoT}
+\end{columns}
+\end{frame}
+
+\begin{frame}{A3: Filter costs 17 CZK more than espresso in the same caf\'e}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\includegraphics[width=\linewidth]{A3_figure.pdf}
+\column{0.5\textwidth}
+\begin{itemize}
+  \item Mean difference: \AthreeEst
+  \item \AthreeDz{} (large)
+  \item No caf\'e charges less for filter than for espresso
+\end{itemize}
+\vspace{0.4em}
+{\footnotesize\color{gray}Test: paired $t$-test, \AthreeT}
+\end{columns}
+\end{frame}
+
+\begin{frame}{A4: Specialty features and the espresso price}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\includegraphics[width=0.9\linewidth]{A4_figure.pdf}
+\column{0.5\textwidth}
+\begin{itemize}
+  \item None: \AfourMnone\,CZK, one: \AfourMone\,CZK, both: \AfourMboth\,CZK
+  \item Both $-$ none: \AfourGHBothNone
+  \item \AfourEta
+  \item Prices rise with features, but \emph{no evidence} of a difference
+\end{itemize}
+\vspace{0.4em}
+{\footnotesize\color{gray}Test: Welch's ANOVA, \AfourF; Games--Howell}
+\end{columns}
+\end{frame}
+
+\begin{frame}{A5: Most roasteries offer filter coffee}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\includegraphics[width=0.85\linewidth]{A5_figure.pdf}
+\column{0.5\textwidth}
+\begin{itemize}
+  \item Roasteries: \AfiveRoast
+  \item Other caf\'es: \AfiveOther
+  \item Difference: \AfivePP
+  \item \AfiveV: a moderate association
+\end{itemize}
+\vspace{0.4em}
+{\footnotesize\color{gray}Test: $\chi^2$ test, \AfiveChi}
+\end{columns}
+\end{frame}
+
+\begin{frame}{A6: Filter and espresso prices move together}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\includegraphics[width=0.85\linewidth]{A6_figure.pdf}
+\column{0.5\textwidth}
+\begin{itemize}
+  \item \AsixR, $n = \AsixN$
+  \item Shared variance $r^2 = \AsixRsq$
+  \item Strong positive association, not a cause
+\end{itemize}
+\vspace{0.4em}
+{\footnotesize\color{gray}Test: Pearson correlation, \AsixT}
+\end{columns}
+\end{frame}
+
+\begin{frame}{A7: +10 CZK espresso goes with +8 CZK filter}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\includegraphics[width=0.85\linewidth]{A7_figure.pdf}
+\column{0.5\textwidth}
+\begin{itemize}
+  \item \AsevenB
+  \item $R^2 = \AsevenRsq$
+  \item A caf\'e's espresso price predicts its filter price well
+\end{itemize}
+\vspace{0.4em}
+{\footnotesize\color{gray}Test: linear regression, \AsevenT}
+\end{columns}
+\end{frame}
+
+\begin{frame}{A8: The espresso gap holds at the same distance from the Orloj}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\includegraphics[width=\linewidth]{A8_figure.pdf}
+\column{0.5\textwidth}
+\begin{itemize}
+  \item Gap with filter coffee, adjusted: \AeightBtwo
+  \item Unadjusted: \AeightBone\,CZK; it grows by \AeightChange\,CZK
+  \item Espresso is cheaper further out: \AeightDist
+\end{itemize}
+\vspace{0.4em}
+{\footnotesize\color{gray}Test: multiple regression, robust SE}
+\end{columns}
+\end{frame}
+
+\begin{frame}{A9: Filter tracks espresso more steeply in independents}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\includegraphics[width=\linewidth]{A9_figure.pdf}
+\column{0.5\textwidth}
+\begin{itemize}
+  \item Independent: \AnineSind
+  \item Chains: \AnineSchain
+  \item Difference \AnineB
+  \item Borderline: only \AnineN{} chains
+\end{itemize}
+\vspace{0.4em}
+{\footnotesize\color{gray}Test: regression with interaction}
+\end{columns}
+\end{frame}
+
+\begin{frame}{A10: Filter coffee is more common east of the centre}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\includegraphics[width=\linewidth]{A10_figure.pdf}
+\column{0.5\textwidth}
+\begin{itemize}
+  \item +\AtenAME
+  \item \AtenPwest\% at 2\,km west, \AtenPzero\% at the Orloj, \AtenPeast\% at 4\,km east
+  \item $n = \AtenN$, \AtenEvents{} caf\'es with filter coffee
+\end{itemize}
+\vspace{0.4em}
+{\footnotesize\color{gray}Test: logistic regression, average marginal effect}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Conclusion: what specialty caf\'es offer}
+\begin{itemize}
+  \item Filter coffee is sold by under a third of caf\'es, but by \textbf{most roasteries}
+  \item It costs \textbf{a little under 4 USD}, about \textbf{17 CZK more than an espresso}, and is priced in line with the caf\'e's espresso
+  \item Caf\'es with filter coffee charge slightly more for espresso and are more common east of the centre, but these differences are small and uncertain
+  \item Specialty caf\'es stand out more in \emph{what} they offer than in what they charge for the basics
+  \item In this sample: a convenience sample, observational data, and caf\'es in the same district are not independent
+\end{itemize}
+\vspace{0.5em}
+\scriptsize Code and data: \url{https://github.com/LucaRichardson-24/prague-cafes-analysis}
+\end{frame}
+
+\end{document}
