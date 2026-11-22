@@ -756,3 +756,92 @@ write_tex(checks_tab, "report/tables/A_checks.tex", "lll")
 writeLines(paste0(R.version.string, "; packages sandwich ", packageVersion("sandwich"),
                   " and lmtest ", packageVersion("lmtest")),
            "report/tables/versions.tex")
+
+
+# ---- Numbers for the slides (presentation/slides.tex) ----
+# Every number on the slides is written here, so the slides
+# always match this analysis.
+
+mm  <- function(x, digits = 1) sub("^-0(\\.0+)$", "0\\1", num(x, digits))   # inside math
+tm  <- function(x, digits = 1) gsub("-", "$-$", mm(x, digits))               # in text
+ci_tm <- function(lo, hi, digits = 1)
+  paste0("95\\%~CI [", tm(lo, digits), ", ", tm(hi, digits), "]")
+pm  <- function(p) if (p < .001) "\\plt{.001}" else paste0("\\pval{", sub("^0", "", num(p, 3)), "}")
+mac <- function(name, value) paste0("\\newcommand{\\", name, "}{", value, "}")
+
+a1diff   <- mean(f$filter) - mu
+a1diffci <- a1$conf.int - mu
+a1d_se   <- sqrt(1 / nrow(f) + a1d^2 / (2 * nrow(f)))
+p_at     <- 100 * predict(m10, data.frame(east_km = c(-2, 0, 4)), type = "response")
+share    <- function(r) paste0(tab5[r, "Offers filter"], " of ", sum(tab5[r, ]), " (",
+                               num(100 * tab5[r, "Offers filter"] / sum(tab5[r, ])), "\\%)")
+
+macros <- c(
+  mac("Nall", nrow(d)),
+  mac("Nfilter", nrow(f)),
+  mac("BenchCZK", num(mu, 2)),
+  mac("AoneEst", paste0("\\meanci{", mm(mean(f$filter)), "}{", tm(a1$conf.int[1]), "}{",
+                        tm(a1$conf.int[2]), "}{CZK}")),
+  mac("AoneDiff", paste0("\\mdiffci{", mm(a1diff), "}{", tm(a1diffci[1]), "}{",
+                         tm(a1diffci[2]), "}{CZK}")),
+  mac("AoneD", paste0("\\dci{", mm(a1d, 2), "}{", tm(a1d - 1.96 * a1d_se, 2), "}{",
+                      tm(a1d + 1.96 * a1d_se, 2), "}")),
+  mac("AoneT", paste0("\\tstat{", a1$parameter, "}{", mm(a1$statistic, 2), "}, ", pm(a1$p.value))),
+  mac("AtwoMone", num(mean(x1))),
+  mac("AtwoMzero", num(mean(x0))),
+  mac("AtwoEst", paste0("\\diffci{", mm(a2diff), "}{", tm(a2ci[1]), "}{", tm(a2ci[2]), "}{CZK}{",
+                        mm(a2d, 2), "}{", tm(a2d - 1.96 * a2d_se, 2), "}{",
+                        tm(a2d + 1.96 * a2d_se, 2), "}")),
+  mac("AtwoT", paste0("\\tstat{", num(a2$parameter), "}{", mm(a2$statistic, 2), "}, ",
+                      pm(a2$p.value), " (one-tailed)")),
+  mac("AthreeEst", paste0("\\mdiffci{", mm(mean(diff3)), "}{", tm(a3ci[1]), "}{",
+                          tm(a3ci[2]), "}{CZK}")),
+  mac("AthreeDz", paste0("$d_z = ", mm(dz, 2), "$, ", ci_tm(dz - 1.96 * dz_se, dz + 1.96 * dz_se, 2))),
+  mac("AthreeT", paste0("\\tstat{", a3$parameter, "}{", mm(a3$statistic, 2), "}, ",
+                        pm(a3$p.value), " (one-tailed)")),
+  mac("AfourMnone", num(mean(d$espresso[g4 == "0"]))),
+  mac("AfourMone",  num(mean(d$espresso[g4 == "1"]))),
+  mac("AfourMboth", num(mean(d$espresso[g4 == "2"]))),
+  mac("AfourGHBothNone", paste0("\\mdiffci{", mm(big$diff), "}{", tm(big$lo), "}{", tm(big$hi),
+                                "}{CZK}, $p_{adj} = ", sub("^0", "", num(big$p, 3)), "$")),
+  mac("AfourEta", paste0("$\\eta^2 = ", mm(eta2, 2), "$")),
+  mac("AfourF", paste0("\\Fstat{", a4$parameter[1], "}{", num(a4$parameter[2]), "}{",
+                       mm(a4$statistic, 2), "}, ", pm(a4$p.value))),
+  mac("AfiveRoast", share("Roastery")),
+  mac("AfiveOther", share("Other cafe")),
+  mac("AfivePP", paste0(tm(pp5), " percentage points, ", ci_tm(pp5_ci[1], pp5_ci[2]))),
+  mac("AfiveV", paste0("$V = ", mm(v5, 2), "$, ", ci_tm(v5_ci[1], v5_ci[2], 2))),
+  mac("AfiveChi", paste0("$\\chi^2(1, N = ", sum(tab5), ") = ", mm(a5$statistic, 2), "$, ",
+                         pm(a5$p.value))),
+  mac("AsixR", paste0("$r = ", mm(a6$estimate, 2), "$, ", ci_tm(a6$conf.int[1], a6$conf.int[2], 2))),
+  mac("AsixN", nrow(f)),
+  mac("AsixRsq", mm(a6$estimate^2, 2)),
+  mac("AsixT", paste0("\\tstat{", a6$parameter, "}{", mm(a6$statistic, 2), "}, ", pm(a6$p.value))),
+  mac("AsevenB", paste0("$b = ", mm(ct7["esp10", 1], 2), "$ CZK per 10 CZK, robust ",
+                        ci_tm(ci7["esp10", 1], ci7["esp10", 2], 2))),
+  mac("AsevenRsq", mm(summary(m7)$r.squared, 2)),
+  mac("AsevenT", paste0("\\tstat{", df.residual(m7), "}{", mm(ct7["esp10", 3], 2), "}, ",
+                        pm(ct7["esp10", 4]))),
+  mac("AeightBone", num(coef(m8a)["offers_filter"])),
+  mac("AeightBtwo", paste0("$b = ", mm(ct8["offers_filter", 1], 2), "$ CZK, robust ",
+                           ci_tm(ci8["offers_filter", 1], ci8["offers_filter", 2], 2))),
+  mac("AeightChange", num(change8)),
+  mac("AeightDist", paste0("$b = ", mm(ct8["distance_km", 1], 2), "$ CZK per km, robust ",
+                           ci_tm(ci8["distance_km", 1], ci8["distance_km", 2], 2))),
+  mac("AnineSind", paste0(num(s_ind["est"], 2), " CZK per 10 CZK, ",
+                          ci_tm(s_ind["lo"], s_ind["hi"], 2))),
+  mac("AnineSchain", paste0(num(s_chain["est"], 2), " CZK per 10 CZK, ",
+                            ci_tm(s_chain["lo"], s_chain["hi"], 2))),
+  mac("AnineN", sum(f$chain == 1)),
+  mac("AnineB", paste0("$b = ", mm(ct9["esp10:chain", 1], 2), "$, robust ",
+                       ci_tm(ci9["esp10:chain", 1], ci9["esp10:chain", 2], 2), ", ",
+                       pm(ct9["esp10:chain", 4]))),
+  mac("AtenAME", paste0(num(ame_pp, 2), " percentage points per km, ",
+                        ci_tm(ame_ci[1], ame_ci[2], 2))),
+  mac("AtenPwest", num(p_at[1], 0)),
+  mac("AtenPzero", num(p_at[2], 0)),
+  mac("AtenPeast", num(p_at[3], 0)),
+  mac("AtenN", nobs(m10)),
+  mac("AtenEvents", sum(d$offers_filter))
+)
+writeLines(macros, "report/tables/results_macros.tex")
