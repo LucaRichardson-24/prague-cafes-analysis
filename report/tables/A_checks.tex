@@ -1,0 +1,17 @@
+\begin{tabular}{lll}
+\toprule
+Analysis & Check & Result \\
+\midrule
+A2 & Equal variances ($F$-test) & $F$(53, 134) = 0.87, $p$ = .572 \\
+A4 & Equal variances (Fligner-Killeen) & $\chi^2$(2) = 1.55, $p$ = .462 \\
+A5 & Smallest expected count & 6.3 \\
+A7 & Constant variance (Breusch-Pagan) & BP = 0.01, $p$ = .933 \\
+A7 & Influential (Cook's $D$ $>$ 4/$n$) & Pleiku Coffee, Mullet Man Coffee, Eska Karlín \\
+A8 & Constant variance (Breusch-Pagan) & BP = 4.64, $p$ = .098 \\
+A8 & Variance inflation factor & 1.01 \\
+A8 & Nested $F$-test (adding distance) & $F$(1, 186) = 6.60, $p$ = .011 \\
+A8 & Influential (Cook's $D$ $>$ 4/$n$) & 11 cafes \\
+A9 & Constant variance (Breusch-Pagan) & BP = 2.17, $p$ = .538 \\
+A9 & Influential (Cook's $D$ $>$ 4/$n$) & Cafe Slavia, Pleiku Coffee, Coffee and Riot \\
+\bottomrule
+\end{tabular}

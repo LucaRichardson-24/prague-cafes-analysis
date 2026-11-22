@@ -1,0 +1,16 @@
+\begin{tabular}{lll}
+\toprule
+Analysis & Alternative / check & Result \\
+\midrule
+A1 & Wilcoxon signed-rank & $V$ = 444, $p$ = .010 \\
+A2 & Wilcoxon rank-sum (one-tailed) & $W$ = 4431.5, $p$ = .010 \\
+A3 & Wilcoxon signed-rank (one-tailed) & $V$ = 1378, $p$ = $<$.001 \\
+A4 & Kruskal-Wallis & $H$(2) = 6.76, $p$ = .034 \\
+A5 & Fisher's exact (two-tailed) & OR = 4.40, $p$ = .002 \\
+A6 & Spearman $\rho$ (bootstrap CI) & 0.73 [0.57, 0.85] \\
+A7 & Without 3 influential cafes & $b$ = 8.01 (1.00), $p$ = $<$.001, $n$ = 51 \\
+A8 & Classical (non-robust) SE & $b$ = 4.40 (1.96), $p$ = .026 \\
+A9 & Nested $F$-test (classical) & $F$(1, 50) = 4.00, $p$ = .051 \\
+A10 & Likelihood-ratio test & $\chi^2$(1) = 5.67, $p$ = .017 \\
+\bottomrule
+\end{tabular}

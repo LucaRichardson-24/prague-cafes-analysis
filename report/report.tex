@@ -1,0 +1,382 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{cafestyle}
+\usepackage{adjustbox}
+\usepackage[section]{placeins}
+
+% Include an R-exported file if it exists, otherwise show a visible placeholder
+\newcommand{\inputtable}[1]{\IfFileExists{#1}{\input{#1}}{\par\noindent\fbox{\parbox{0.9\linewidth}{\centering Missing table file: \texttt{\detokenize{#1}}}}\par}}
+\newcommand{\inputfigure}[2][0.85]{\IfFileExists{#2}{\includegraphics[width=#1\linewidth]{#2}}{\fbox{\parbox{0.8\linewidth}{\centering Missing figure file: \texttt{\detokenize{#2}}}}}}
+% wide tables are shrunk to the page width (narrow ones are left alone)
+\newcommand{\inputtext}[1]{\IfFileExists{#1}{\input{#1}\unskip}{[missing file \texttt{\detokenize{#1}}]}}
+\newcommand{\widetable}[1]{\begin{adjustbox}{max width=\linewidth}\inputtable{#1}\end{adjustbox}}
+
+\title{\textbf{Filter coffee in Prague caf\'es: who offers it and what it costs}}
+\author{Luca Richardson\\[0.3ex]\small Data Analytics, Speciality Caf\'es\\[0.3ex]\small Partner: Aidan Osbaugh}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent This report looks at speciality coffee in 189 Prague caf\'es that students in our class visited in autumn 2026. 54 of them serve filter coffee and 22 are roasteries. A filter coffee costs 84.5~CZK on average, a bit under 4~US dollars, and about 17.1~CZK more than an espresso in the same caf\'e. Caf\'es with filter coffee charge about 3.9~CZK more for an espresso, and the gap is still about 4.4~CZK when distance from the centre is taken into account. Roasteries are about 35 percentage points more likely to serve filter coffee than other caf\'es. Filter and espresso prices move together closely ($r=0.64$): 10~CZK more for an espresso goes with about 8.4~CZK more for a filter coffee.
+\end{abstract}
+
+\section{Introduction}
+Not every caf\'e serves filter coffee. You need good beans, extra equipment and staff who know how to brew it, so it is something you mostly find in speciality caf\'es. That made me expect that caf\'es with filter coffee would be different from the rest: more often roasteries, and maybe a bit more expensive. In my part of the class project I look at this from a few sides. How much does a filter coffee cost, and how much more than an espresso? Do caf\'es with filter coffee, or with their own roasting, charge more for an espresso? Which caf\'es offer filter coffee at all, and does it depend on where in Prague they are?
+
+\section{Data and methods}
+
+\subsection{Data}
+The data were collected in person by the students of the class in September and October 2026. Each student visited about 20 caf\'es and recorded the prices from the menu, the seating, the Google rating and the caf\'e type. The raw file has 299 rows. The cleaning script (\texttt{01\_cleaning.R}) made these changes:
+\begin{itemize}
+  \item 99 empty rows at the bottom of the sheet were dropped, which left 200 caf\'es.
+  \item 11 caf\'es had been entered twice by two students. For each pair I kept the row with fewer missing values, or the earlier row if both were equally complete, which left \textbf{189 caf\'es}.
+  \item 24 caf\'es had more than one price in a cell (for example ``55/30'' for dine-in and take-away, or ``85, 95, 105'' for three sizes). I kept the first price, which is the dine-in price or the smallest size.
+  \item A missing filter price was written as ``NA'' (127 caf\'es), ``na'' (16) or left blank (3). All three were treated as ``does not serve filter coffee''.
+  \item 20 district labels with typos or lower case (such as ``prauge 1'') were rebuilt from the district number, 6 numbers of ratings had a thousands separator removed, and one blank caf\'e type was set to missing.
+\end{itemize}
+From these data I created the variables used below: \emph{offers filter coffee} (1 if a filter price was recorded), the \emph{number of speciality features} (roastery plus filter coffee: 0, 1 or 2), \emph{chain} (local or international chain versus independent) and the \emph{distance east of the Orloj} in km, computed from the coordinates as $(\text{longitude}-14.4207)\times 71$.
+
+In the 189 caf\'es, the espresso price and the distance have no missing values. The filter price is known only for the 54 caf\'es that serve filter coffee, so A1, A3, A6, A7 and A9 use these 54 caf\'es. No variable was log-transformed. Full descriptive statistics are in Appendix~\ref{app:desc}.
+
+\subsection{Statistical methods}
+I used $\alpha=.05$ throughout. The hypotheses and the direction of the one-tailed tests (A2, A3 and A5, whose questions say ``more'') were written down before the data were cleaned. The benchmark of 4~USD in A1 was converted with the Czech National Bank rate of 22.182~CZK per dollar (16 November 2026), which gives 88.73~CZK.
+
+The descriptive script (\texttt{02\_descriptive.R}) decided between parametric and non-parametric tests (Table~\ref{tab:decision}). A variable counted as approximately normal if its skewness was between $-0.5$ and $0.5$ and the histogram and Q--Q plot agreed. Otherwise the central limit theorem was taken to apply if the group had at least 30 caf\'es and the 5{,}000 bootstrapped means looked normal. Every tested variable and group passed one of the two rules, so I used parametric tests: a one-sample $t$-test (A1), Welch's $t$-test (A2), a paired $t$-test (A3), Welch's ANOVA with Games--Howell comparisons (A4) and Pearson's $r$ (A6). A5 uses the $\chi^2$ test and, for the one-tailed $p$-value, Fisher's exact test. A7 to A9 are linear regressions with robust (HC3) standard errors, and A10 is a logistic regression with the average marginal effect. The rank-based alternatives are reported in Appendix~\ref{app:robust}.
+
+Confidence intervals for means are $t$-based. The confidence intervals for Spearman's $\rho$ and Cram\'er's $V$ are percentile bootstrap intervals with 5{,}000 resamples (seed 2026). The Games--Howell comparisons are adjusted for multiple testing. The software was \inputtext{tables/versions.tex}.
+
+\section{Results}
+
+Table~\ref{tab:summary} shows the main result of all ten analyses. The sections below go through them in order.
+
+\begin{table}[htbp]
+\centering
+\caption{Main results of the ten analyses. Prices in CZK, pp = percentage points. One-tailed $p$-values are marked. Robust (HC3) standard errors are used in A7 to A9.}
+\label{tab:summary}
+\widetable{tables/summary.tex}
+\end{table}
+
+\subsection{A1: How much does a filter coffee cost?}
+\Ho: the mean filter coffee price is 88.73~CZK (4~USD). \Hone: it is different (two-tailed).
+
+In the 54 caf\'es that serve filter coffee, the mean price is \meanci{84.5}{80.3}{88.7}{CZK} (Table~\ref{tab:A1}, Figure~\ref{fig:A1}). This is 4.2~CZK below the benchmark, $d=-0.28$, \tstat{53}{$-2.03$}, \pval{.047}. The upper limit of the interval only just stays below 88.73~CZK. So filter coffee in our sample is a little cheaper than 4~dollars, but only by about 4~CZK (5\%), which a customer would hardly notice.
+
+\begin{table}[htbp]
+\centering
+\caption{A1. Mean filter coffee price in caf\'es that serve filter coffee, compared with the benchmark of 4~USD (88.73~CZK), with a one-sample $t$-test and Cohen's $d$.}
+\label{tab:A1}
+\widetable{tables/A1_table.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[0.6]{figures/A1_figure.pdf}
+\caption{A1. Filter coffee prices in CZK of the 54 caf\'es that serve filter coffee (grey points, jittered). The black diamond is the mean and the bar its 95\% confidence interval. The dashed line is the benchmark of 4~USD (88.73~CZK).}
+\label{fig:A1}
+\end{figure}
+
+\subsection{A2: Do caf\'es with filter coffee charge more for an espresso?}
+\Ho: the mean espresso price is the same in caf\'es with and without filter coffee. \Hone: it is higher in caf\'es with filter coffee (one-tailed). The difference is caf\'es with filter coffee minus caf\'es without.
+
+An espresso costs \meanci{67.4}{64.2}{70.6}{CZK} in the 54 caf\'es with filter coffee and \meanci{63.5}{61.4}{65.6}{CZK} in the 135 caf\'es without (Table~\ref{tab:A2}, Figure~\ref{fig:A2}). The difference is \diffci{3.9}{0.1}{7.7}{CZK}{0.32}{$-0.00$}{0.63}, Welch's \tstat{104.2}{2.02}, one-tailed \pval{.023}. The $p$-value was fixed as one-tailed in advance. So caf\'es that serve filter coffee do charge a bit more for an espresso, about 4~CZK or 6\%. That is not much, and because the interval almost reaches zero, the real gap could also be very small.
+
+\begin{table}[htbp]
+\centering
+\caption{A2. Espresso price in caf\'es with and without filter coffee: group means with 95\% confidence intervals, the difference (with filter minus without), Cohen's $d$ and Welch's $t$-test.}
+\label{tab:A2}
+\inputtable{tables/A2_table.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[0.6]{figures/A2_figure.pdf}
+\caption{A2. Espresso prices in CZK of caf\'es without filter coffee ($n=135$) and with filter coffee ($n=54$). Grey points are caf\'es, black diamonds are group means and bars are 95\% confidence intervals.}
+\label{fig:A2}
+\end{figure}
+
+\subsection{A3: How much more does a filter coffee cost than an espresso?}
+\Ho: the mean within-caf\'e difference (filter minus espresso) is 0. \Hone: it is greater than 0 (one-tailed).
+
+In the 54 caf\'es with both prices, a filter coffee costs on average 17.1~CZK more than an espresso, 95\% CI [13.9,\,20.4], $d_z=1.45$, \CI{1.07}{1.83}, \tstat{53}{10.65}, one-tailed \plt{.001} (Table~\ref{tab:A3}, Figure~\ref{fig:A3}). Only two caf\'es charge the same for both, and none charges less for filter coffee. That is about a quarter of the espresso price, so choosing filter coffee means paying a noticeable extra.
+
+\begin{table}[htbp]
+\centering
+\caption{A3. Difference between the filter coffee and the espresso price in the same caf\'e (filter minus espresso), with the paired $t$-test and $d_z$.}
+\label{tab:A3}
+\widetable{tables/A3_table.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[0.6]{figures/A3_figure.pdf}
+\caption{A3. Filter coffee price minus espresso price in CZK for each of the 54 caf\'es that sell both. The black diamond is the mean difference and the bar its 95\% confidence interval. The dashed line marks no difference.}
+\label{fig:A3}
+\end{figure}
+
+\subsection{A4: Does the espresso price depend on the number of speciality features?}
+\Ho: the mean espresso price is the same in caf\'es with 0, 1 and 2 speciality features. \Hone: at least one mean differs.
+
+The mean espresso price rises from \meanci{63.4}{61.2}{65.7}{CZK} with no feature ($n=126$) to \meanci{66.3}{63.2}{69.4}{CZK} with one ($n=50$) and \meanci{69.3}{62.6}{76.0}{CZK} with both ($n=13$) (Table~\ref{tab:A4}, Figure~\ref{fig:A4}). Welch's ANOVA does not show a difference, \Fstat{2}{33.1}{2.20}, \pval{.126}, $\eta^2=0.02$. So even though the means go up with more features, the data do not give evidence of a real difference. The group with both features has only 13 caf\'es, which is why its interval is so wide. Since the test was not significant, the Games--Howell comparisons are only in Appendix~\ref{app:robust}.
+
+\begin{table}[htbp]
+\centering
+\caption{A4. Espresso price by the number of speciality features (roastery, filter coffee): group means with 95\% confidence intervals, Welch's ANOVA and $\eta^2$.}
+\label{tab:A4}
+\inputtable{tables/A4_table.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[0.6]{figures/A4_figure.pdf}
+\caption{A4. Espresso prices in CZK by the number of speciality features: 0 ($n=126$), 1 ($n=50$) and 2 ($n=13$). Grey points are caf\'es, black diamonds are group means and bars are 95\% confidence intervals.}
+\label{fig:A4}
+\end{figure}
+
+\subsection{A5: Are roasteries more likely to offer filter coffee?}
+\Ho: the share of caf\'es with filter coffee is the same for roasteries and other caf\'es. \Hone: it is higher for roasteries (one-tailed).
+
+13 of the 22 roasteries (59.1\%) serve filter coffee, against 41 of the 167 other caf\'es (24.6\%) (Table~\ref{tab:A5}, Figure~\ref{fig:A5}). The difference is 34.5 percentage points, \CI{13.0}{56.1}. The association is significant, \chisqstat{1}{189}{11.36}, \plt{.001}, and Fisher's exact test gives a one-tailed \pval{.001}. The smallest expected count is 6.3, so the $\chi^2$ test is valid. Cram\'er's $V=0.25$ (bootstrap interval in Table~\ref{tab:A5}). The standardised residuals of $\pm3.37$ show that the association comes from roasteries with filter coffee, of which there are more than expected. Put simply, in our sample a roastery is more than twice as likely to have filter coffee on the menu as a normal caf\'e.
+
+\begin{table}[htbp]
+\centering
+\caption{A5. Roasteries and other caf\'es by whether they serve filter coffee: counts, row percentages and standardised residuals, with the difference in percentage points, the $\chi^2$ test, Cram\'er's $V$ and Fisher's exact test.}
+\label{tab:A5}
+\inputtable{tables/A5_table.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[0.6]{figures/A5_figure.pdf}
+\caption{A5. Percentage of caf\'es that serve filter coffee among other caf\'es ($n=167$) and roasteries ($n=22$). Bars are 95\% confidence intervals.}
+\label{fig:A5}
+\end{figure}
+
+\subsection{A6: Are filter and espresso prices correlated?}
+\Ho: the correlation is 0. \Hone: it is not 0.
+
+In the 54 caf\'es with both prices, the correlation is $r=0.64$, \CI{0.46}{0.78}, \tstat{52}{6.08}, \plt{.001}, so the two prices share $r^2=0.42$, or 42\%, of their variance (Table~\ref{tab:A6}, Figure~\ref{fig:A6}). The rank correlation is similar, Spearman's $\rho=0.73$. Caf\'es that are expensive tend to be expensive for both drinks. The link is strong, but it only shows that the two prices move together, not that one causes the other.
+
+\begin{table}[htbp]
+\centering
+\caption{A6. Pearson correlation between the espresso and the filter coffee price, with $r^2$ and Spearman's $\rho$ with a bootstrap 95\% confidence interval (5{,}000 resamples, seed 2026).}
+\label{tab:A6}
+\widetable{tables/A6_table.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[0.6]{figures/A6_figure.pdf}
+\caption{A6. Filter coffee price against espresso price in CZK for the 54 caf\'es that sell both (points slightly jittered), with the least-squares line. The legend gives Pearson's $r$ with its 95\% confidence interval.}
+\label{fig:A6}
+\end{figure}
+
+\subsection{A7: How much does the filter price change with the espresso price?}
+\Ho: the slope of the filter price on the espresso price is 0. \Hone: it is not 0.
+
+Each 10~CZK more on the espresso price goes with 8.42~CZK more on the filter price, 95\% CI [6.20,\,10.65] (robust), \tstat{52}{7.60}, \plt{.001}, $R^2=0.42$ (Table~\ref{tab:A7}, Figure~\ref{fig:A7}). The residual plots show no clear pattern and the Breusch--Pagan test does not find unequal variance (Appendix~\ref{app:diag}). Three caf\'es are influential, mainly Pleiku Coffee, whose filter coffee costs 145~CZK. Without them the slope is 8.01~CZK, so the result does not depend on them (Appendix~\ref{app:robust}). In practice, when a caf\'e's espresso is 10~CZK more expensive, its filter coffee is usually about 8~CZK more expensive too.
+
+\begin{table}[htbp]
+\centering
+\caption{A7. Linear regression of the filter coffee price (CZK) on the espresso price (per 10~CZK), with robust (HC3) standard errors in parentheses and 95\% confidence intervals.}
+\label{tab:A7}
+\widetable{tables/A7_table.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[0.6]{figures/A7_figure.pdf}
+\caption{A7. Filter coffee price against espresso price in CZK for 54 caf\'es (points slightly jittered), with the fitted regression line and its robust 95\% confidence band.}
+\label{fig:A7}
+\end{figure}
+
+\subsection{A8: Does the espresso gap hold when distance is accounted for?}
+\Ho: once the distance from the Orloj is included, caf\'es with and without filter coffee have the same mean espresso price. \Hone: they differ.
+
+Without distance (Model 1), caf\'es with filter coffee charge 3.88~CZK more for an espresso. With distance (Model 2), the gap is 4.40~CZK, 95\% CI [0.59,\,8.20], \tstat{186}{2.28}, \pval{.024} (Table~\ref{tab:A8}, Figure~\ref{fig:A8}). So the gap does not disappear: it grows by about 0.5~CZK. The espresso price falls by 1.73~CZK per km from the Orloj, and adding distance improves the model (nested $F$-test in Appendix~\ref{app:diag}). The gap gets slightly bigger because caf\'es with filter coffee are on average a bit further from the centre, where espresso is cheaper, so once distance is taken into account their higher prices show more clearly. Distance and filter coffee are hardly related (VIF of 1.01). The $R^2$ is only 0.05, though, so these two variables explain very little of why espresso prices differ.
+
+\begin{table}[htbp]
+\centering
+\caption{A8. Linear regression of the espresso price (CZK) on serving filter coffee, without (M1) and with (M2) the distance from the Orloj. Robust (HC3) standard errors in parentheses and 95\% confidence intervals.}
+\label{tab:A8}
+\widetable{tables/A8_table.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[0.6]{figures/A8_figure.pdf}
+\caption{A8. Espresso price in CZK against distance from the Orloj in km, for caf\'es with filter coffee (black, $n=54$) and without (grey, $n=135$). Lines are the fitted values of Model 2 with robust 95\% confidence bands.}
+\label{fig:A8}
+\end{figure}
+
+\subsection{A9: Is the price link different in chains?}
+\Ho: the slope of the filter price on the espresso price is the same in independent caf\'es and chains (interaction = 0). \Hone: it differs.
+
+In independent caf\'es ($n=35$) the filter price rises by 11.44~CZK per 10~CZK of espresso, \CI{6.22}{16.65}, and in chains ($n=19$) by 5.41~CZK, \CI{2.48}{8.34} (Table~\ref{tab:A9slopes}, Figure~\ref{fig:A9}). The interaction is $-6.02$~CZK, 95\% CI [$-12.00$,\,$-0.05$], \tstat{50}{$-2.02$}, \pval{.048} (Table~\ref{tab:A9}). With the classical nested $F$-test the result is \pval{.051} (Appendix~\ref{app:robust}). So there is some evidence that in chains the filter price follows the espresso price less closely. But the result is right on the edge of significance and there are only 19 chains in the data, so I would not draw a firm conclusion from it. The chain coefficient in Model 2 is the difference at an espresso price of 0~CZK, so it has no practical meaning.
+
+\begin{table}[htbp]
+\centering
+\caption{A9. Linear regression of the filter coffee price (CZK) on the espresso price (per 10~CZK) and chain, without (M1) and with (M2) their interaction. Robust (HC3) standard errors in parentheses and 95\% confidence intervals.}
+\label{tab:A9}
+\widetable{tables/A9_table.tex}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{A9. Slope of the filter coffee price on the espresso price (CZK per 10~CZK) in each group, from Model 2, with robust 95\% confidence intervals.}
+\label{tab:A9slopes}
+\inputtable{tables/A9_slopes.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[0.6]{figures/A9_figure.pdf}
+\caption{A9. Filter coffee price against espresso price in CZK for independent caf\'es (grey, $n=35$) and chains (black, $n=19$), with the fitted lines of the interaction model and robust 95\% confidence bands.}
+\label{fig:A9}
+\end{figure}
+
+\subsection{A10: Does the chance of filter coffee change from west to east?}
+\Ho: the probability of serving filter coffee does not change with the distance east of the Orloj. \Hone: it changes.
+
+The outcome is 1 if the caf\'e serves filter coffee (a filter price was recorded) and 0 otherwise. The model uses 189 caf\'es with 54 events. Each km further east goes with an average increase of 4.54 percentage points in the probability of serving filter coffee, 95\% CI [0.93,\,8.15], $z=2.35$, \pval{.019} (Table~\ref{tab:A10}, Figure~\ref{fig:A10}). As a check, the odds ratio is 1.26 per km. The predicted probability goes from about 14\% at 3~km west of the Orloj to about 24\% at the Orloj and about 50\% at 5~km east. So in our sample, filter coffee is easier to find east of the centre, in areas like Karl\'in, Vinohrady and Libe\v{n}, than in the west.
+
+\begin{table}[htbp]
+\centering
+\caption{A10. Logistic regression of serving filter coffee on the distance east of the Orloj (km): average marginal effect in percentage points per km with a delta-method 95\% confidence interval, odds ratio, $z$-test, number of caf\'es and events.}
+\label{tab:A10}
+\widetable{tables/A10_table.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[0.6]{figures/A10_figure.pdf}
+\caption{A10. Predicted probability of serving filter coffee against the distance east of the Orloj in km (negative = west), with a 95\% confidence band. Grey points are the 189 caf\'es at 0 (no filter coffee) or 1 (filter coffee), jittered.}
+\label{fig:A10}
+\end{figure}
+
+\section{Discussion}
+Putting the results together, filter coffee looks like a typical speciality product. Fewer than a third of the caf\'es serve it, roasteries are much more likely to have it, and it is more common in the eastern districts. Where it is served, it costs about 85~CZK, a little under 4~dollars, and about 17~CZK more than an espresso in the same caf\'e. The filter price follows the espresso price closely, so it seems that caf\'es add filter coffee on top of their normal price level rather than pricing it separately. Caf\'es with filter coffee also charge about 4~CZK more for an espresso, and this is not because they are more central. The number of speciality features did not clearly change the espresso price, even though the means go up in the order I expected.
+
+Some results are less solid than they look in the summary table. In A4 the planned Welch ANOVA was not significant ($p=.126$), but the Kruskal--Wallis test was ($p=.034$, Appendix~\ref{app:robust}). I report the planned test, but I would not call this question settled either way. The A9 interaction is right at the 5\% line ($p=.048$ with robust errors and $p=.051$ with the classical test) and is based on only 19 chains, and A1 is also close to the line. All ten analyses were planned before I looked at the data, so none of them is exploratory. The rank-based tests and the models without influential caf\'es are only there to check the main results.
+
+There are also some limits to keep in mind. The caf\'es were chosen by students, mostly in central districts, so this is a convenience sample and the results describe our sample, not every caf\'e in Prague. The data are observational, so nothing here shows a cause: serving filter coffee does not make an espresso more expensive, the two just go together. Caf\'es in the same district are not independent of each other either, since they share rents, customers and competition. All the tests assume independence, so the confidence intervals are probably too narrow and the $p$-values too small. This matters most for A10, because the east--west pattern could come from a few districts that only one or two students visited. Finally, a caf\'e only counts as serving filter coffee if the student wrote down a filter price. One student recorded no filter coffee in any of their caf\'es, so some caf\'es may be counted as not serving it when they actually do.
+
+\section{Conclusion}
+In our sample, filter coffee is a sign of a speciality caf\'e. Roasteries are much more likely to serve it, you find it more often east of the centre, and it costs about 17~CZK more than an espresso, a premium that follows the caf\'e's general price level. Caf\'es that serve it are only a little more expensive overall.
+
+\appendix
+
+\section{Descriptive statistics}\label{app:desc}
+Table~\ref{tab:desc} describes the numeric variables, and Table~\ref{tab:cat} the categorical ones. The filter price is missing for the 135 caf\'es that do not serve filter coffee.
+
+\begin{table}[htbp]
+\centering
+\caption{Descriptive statistics of the numeric variables used. Means are shown with 95\% confidence intervals. IQR is the interquartile range.}
+\label{tab:desc}
+\widetable{tables/D_descriptives.tex}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Counts and percentages of the categorical variables. Chain is shown for the 54 caf\'es with filter coffee, which are the caf\'es used in A9.}
+\label{tab:cat}
+\inputtable{tables/D_categorical.tex}
+\end{table}
+
+\section{Distributions and normality}\label{app:dist}
+All the tested prices are skewed to the right, with a few expensive caf\'es (Figures~\ref{fig:hist} and~\ref{fig:qq}). The filter minus espresso difference is the most skewed (skewness 2.34) because of one caf\'e where filter coffee costs 75~CZK more than espresso. Except for the 13 caf\'es with both speciality features, no group is approximately normal. All these groups have at least 30 caf\'es, however, and their bootstrapped means are close to normal (Figure~\ref{fig:boot}), so the central limit theorem applies. The group of 13 caf\'es is too small for the central limit theorem, but its prices are symmetric (skewness $-0.03$). As a result, all the tests in Table~\ref{tab:decision} are parametric.
+
+\begin{table}[htbp]
+\centering
+\caption{Normality and central limit theorem check for each tested variable and group. Normal: $|$skewness$|<0.5$. CLT: $n\geq30$ and $|$skewness$|$ of 5{,}000 bootstrapped means $<0.5$ (seed 2026). Shapiro--Wilk $p$ is given for information only.}
+\label{tab:decision}
+\widetable{tables/D_table.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[1.0]{figures/D_histograms.pdf}
+\caption{Histograms of the tested prices in CZK for each group, with a normal curve of the same mean and standard deviation. Sample sizes are in the panel titles.}
+\label{fig:hist}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[1.0]{figures/D_qqplots.pdf}
+\caption{Normal Q--Q plots of the tested prices for each group. Points close to the line indicate a normal distribution. Sample sizes are in the panel titles.}
+\label{fig:qq}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[1.0]{figures/D_bootstrap.pdf}
+\caption{Distribution of 5{,}000 bootstrapped means (seed 2026) for each tested group, with a normal curve. A bell shape means that the central limit theorem applies.}
+\label{fig:boot}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[1.0]{figures/D_boxplots.pdf}
+\caption{Boxplots of the espresso price in CZK by filter coffee (A2, $n=135$ and 54) and by number of speciality features (A4, $n=126$, 50 and 13), and of the filter minus espresso difference (A3, $n=54$).}
+\label{fig:box}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[0.85]{figures/D_distance.pdf}
+\caption{Histograms of the distance from the Orloj and of the distance east of the Orloj in km ($n=189$), the predictors in A8 and A10.}
+\label{fig:dist}
+\end{figure}
+
+\section{Regression diagnostics}\label{app:diag}
+Table~\ref{tab:checks} lists the checks of the assumptions. The Breusch--Pagan tests do not show unequal variance in any regression, but robust standard errors are used anyway. In A7 and A9 the residuals are close to normal apart from Pleiku Coffee (Figures~\ref{fig:diag7} and~\ref{fig:diag9}). In A8 the residuals are slightly skewed to the right (Figure~\ref{fig:diag8}), which with 189 caf\'es does not affect the tests much. Removing the influential caf\'es in A7 does not change the conclusion (Appendix~\ref{app:robust}).
+
+\begin{table}[htbp]
+\centering
+\caption{Checks of the assumptions: equality of variances (A2, A4), expected counts (A5), constant variance of the residuals, variance inflation factor, nested $F$-test and influential caf\'es (A7 to A9).}
+\label{tab:checks}
+\widetable{tables/A_checks.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[1.0]{figures/A7_diagnostics.pdf}
+\caption{A7 diagnostics: residuals against fitted values, normal Q--Q plot of the residuals, and Cook's distance for the 54 caf\'es (dashed line at $4/n$).}
+\label{fig:diag7}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[1.0]{figures/A8_diagnostics.pdf}
+\caption{A8 diagnostics for Model 2: residuals against fitted values, normal Q--Q plot of the residuals, and Cook's distance for the 189 caf\'es (dashed line at $4/n$).}
+\label{fig:diag8}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\inputfigure[1.0]{figures/A9_diagnostics.pdf}
+\caption{A9 diagnostics for Model 2: residuals against fitted values, normal Q--Q plot of the residuals, and Cook's distance for the 54 caf\'es (dashed line at $4/n$).}
+\label{fig:diag9}
+\end{figure}
+
+\section{Alternative tests and robustness}\label{app:robust}
+Table~\ref{tab:robust} gives the second method for each question. The rank-based tests agree with the main tests except in A4, where the Kruskal--Wallis test is significant and Welch's ANOVA is not (see the Discussion). Table~\ref{tab:posthoc} gives the Games--Howell comparisons for A4. None of them is significant.
+
+\begin{table}[htbp]
+\centering
+\caption{Alternative tests and robustness checks for each analysis.}
+\label{tab:robust}
+\widetable{tables/A_robustness.tex}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{A4. Games--Howell pairwise comparisons of the espresso price (CZK) between the groups of speciality features, with adjusted 95\% confidence intervals and $p$-values.}
+\label{tab:posthoc}
+\widetable{tables/A4_posthoc.tex}
+\end{table}
+
+\section{Reproducibility}\label{app:repro}
+The code and data are in the repository \texttt{REPOSITORY LINK}. The analysis runs in three scripts, in this order: \texttt{01\_cleaning.R} (raw data to \texttt{dataset.csv}), \texttt{02\_descriptive.R} (descriptive statistics and the choice of tests) and \texttt{03\_analysis.R} (A1 to A10). The software was \inputtext{tables/versions.tex}. All bootstrap procedures use 5{,}000 resamples and the seed 2026.
+
+\end{document}
